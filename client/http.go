@@ -12,14 +12,12 @@ import (
 type Response []byte
 
 var (
-	SUCCESS        = Response{0}
-	NOT_FOUND      = Response{1}
-	WRONG_PASSWORD = Response{2}
-	EXISTS         = Response{3}
-	SERVER_ERROR   = Response{5}
-	WRONG_DATA     = Response{6}
-	YES            = Response{7}
-	NO             = Response{8}
+	SUCCESS               = Response{100}
+	INVALID_REQUEST       = Response{101}
+	INTERNAL_SERVER_ERROR = Response{102}
+	AUTHORIZATION_FAILED  = Response{103}
+	ALREADY_EXISTS        = Response{104}
+	NOT_FOUND             = Response{105}
 )
 
 func init() {
@@ -30,26 +28,20 @@ func responseToString(response Response) string {
 	if bytes.Equal(response, SUCCESS) {
 		return "SUCCESS"
 	}
+	if bytes.Equal(response, INVALID_REQUEST) {
+		return "INVALID REQUEST"
+	}
+	if bytes.Equal(response, INTERNAL_SERVER_ERROR) {
+		return "INTERNAL SERVER ERROR"
+	}
+	if bytes.Equal(response, AUTHORIZATION_FAILED) {
+		return "AUTHORIZATION FAILED"
+	}
+	if bytes.Equal(response, ALREADY_EXISTS) {
+		return "ALREADY EXISTS"
+	}
 	if bytes.Equal(response, NOT_FOUND) {
-		return "NOT_FOUND"
-	}
-	if bytes.Equal(response, WRONG_PASSWORD) {
-		return "WRONG_PASSWORD"
-	}
-	if bytes.Equal(response, EXISTS) {
-		return "EXISTS"
-	}
-	if bytes.Equal(response, SERVER_ERROR) {
-		return "SERVER_ERROR"
-	}
-	if bytes.Equal(response, WRONG_DATA) {
-		return "WRONG_DATA"
-	}
-	if bytes.Equal(response, YES) {
-		return "YES"
-	}
-	if bytes.Equal(response, NO) {
-		return "NO"
+		return "NOT FOUND"
 	}
 	return fmt.Sprintf("%s", response)
 
