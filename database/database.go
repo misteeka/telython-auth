@@ -29,10 +29,10 @@ func InitDatabase() error {
 	if err != nil {
 		return err
 	}
-	db.SetConnMaxLifetime(2 * time.Minute)
-	db.SetConnMaxIdleTime(2 * time.Minute)
-	db.SetMaxIdleConns(10)
-	db.SetMaxOpenConns(10)
+	db.SetConnMaxLifetime(1 * time.Minute)
+	db.SetConnMaxIdleTime(1 * time.Minute)
+	db.SetMaxIdleConns(cfg.GetInt("maxIdleConns"))
+	db.SetMaxOpenConns(cfg.GetInt("maxOpenConns"))
 
 	Users = NewKeyTable("users")
 	SingleUsers = &SingleKeyTable{

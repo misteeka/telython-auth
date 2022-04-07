@@ -8,6 +8,7 @@ import (
 	"main/log"
 	"main/response"
 	"math/rand"
+	"runtime"
 	"strconv"
 	"time"
 )
@@ -156,41 +157,52 @@ func recoverPassword(username string, code string, newPassword string) response.
 	}
 }
 func signUp(username string, password string, code string, ip string) response.Response {
-	isUsernameExists := isUsernameExists(username)
-	if bytes.Equal(isUsernameExists, response.YES) {
-		return response.ALREADY_EXISTS
-	} else if bytes.Equal(isUsernameExists, response.INTERNAL_SERVER_ERROR) {
-		return response.INTERNAL_SERVER_ERROR
-	}
-	email, found, err := database.PendingEmailConfirmations.GetString(username, "email")
-	if err != nil {
-		return response.INTERNAL_SERVER_ERROR
-	}
-	if !found {
-		return response.NOT_FOUND
-	}
-	isEmailExists := isEmailExists(email)
-	if bytes.Equal(isEmailExists, response.YES) {
-		return response.ALREADY_EXISTS
-	} else if bytes.Equal(isEmailExists, response.INTERNAL_SERVER_ERROR) {
-		return response.INTERNAL_SERVER_ERROR
-	}
-	err = database.SingleUsers.Put(username, []string{"password", "email", "reg_ip", "last_ip", "reg_date", "last_login"}, []interface{}{password, email, ip, ip, time.Now().UnixMicro(), time.Now().UnixMicro()})
-	if err != nil {
-		return response.INTERNAL_SERVER_ERROR
-	}
-	go func() {
-		database.PendingEmailConfirmations.Remove(username)
-		err = sendEmail(email, "You was register on Telython!", fmt.Sprintf(`<h2>Telython registration</h2>
-	<div>
-		<div>Hello, %s.</div>
-		<div>Your was registered on Telython.</div>
-		<div>Enjoy messaging!</div>
-	</div>`, username))
-		if err != nil {
-			log.ErrorLogger.Println(err.Error())
+	database.SingleUsers.Put(username, []string{"password", "email", "reg_ip", "last_ip", "reg_date", "last_login"}, []interface{}{password, "email", ip, ip, time.Now().UnixMicro(), time.Now().UnixMicro()})
+	/*
+		isUsernameExists := isUsernameExists(username)
+		if bytes.Equal(isUsernameExists, response.YES) {
+			return response.ALREADY_EXISTS
+		} else if bytes.Equal(isUsernameExists, response.INTERNAL_SERVER_ERROR) {
+			return response.INTERNAL_SERVER_ERROR
 		}
-	}()
+		email, found, err := database.PendingEmailConfirmations.GetString(username, "email")
+		if err != nil {
+			return response.INTERNAL_SERVER_ERROR
+		}
+		if !found {
+			return response.NOT_FOUND
+		}
+		isEmailExists := isEmailExists(email)
+		if bytes.Equal(isEmailExists, response.YES) {
+			return response.ALREADY_EXISTS
+		} else if bytes.Equal(isEmailExists, response.INTERNAL_SERVER_ERROR) {
+			return response.INTERNAL_SERVER_ERROR
+		}
+		savedCode, found, err := database.PendingEmailConfirmations.GetString(username, "code")
+		if err != nil {
+			return response.INTERNAL_SERVER_ERROR
+		}
+		if !found {
+			return response.NOT_FOUND
+		}
+		if code == savedCode {
+			err = database.SingleUsers.Put(username, []string{"password", "email", "reg_ip", "last_ip", "reg_date", "last_login"}, []interface{}{password, email, ip, ip, time.Now().UnixMicro(), time.Now().UnixMicro()})
+			if err != nil {
+				return response.INTERNAL_SERVER_ERROR
+			}
+			database.PendingEmailConfirmations.Remove(username)
+			go func() {
+				err = sendEmail(email, "You was register on Telython!", fmt.Sprintf(`<h2>Telython registration</h2>
+		<div>
+			<div>Hello, %s.</div>
+			<div>Your was registered on Telython.</div>
+			<div>Enjoy messaging!</div>
+		</div>`, username))
+				if err != nil {
+					log.ErrorLogger.Println(err.Error())
+				}
+			}()
+		}*/
 	return response.SUCCESS
 }
 
@@ -201,6 +213,7 @@ func panicIfError(err error) {
 }
 
 func main() {
+	runtime.GOMAXPROCS(8)
 	rand.Seed(time.Now().UnixNano())
 
 	log.InfoLogger.Println("Starting...")
